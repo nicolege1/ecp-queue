@@ -116,12 +116,7 @@ function updateDateControls() {
 async function loadData(from = null, to = null) {
   try {
     setText("updateStatus", "Читаю файл с данными");
-    const params = new URLSearchParams({ time: Date.now() });
-    if (from) params.set("from", from);
-    if (to) params.set("to", to);
-    const response = await fetch(`/api/data?${params}`, { cache: "no-store" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
+    const data = window.computeQueueData(from, to);
 
     queueData = data.chart;
     availableDates = data.availableDates;
@@ -148,7 +143,7 @@ async function loadData(from = null, to = null) {
     setText("peakWaitText", `Самое высокое среднее ожидание: ${data.insights.peakWait.value} ${minuteWord}`);
     setText("maxWaitInsight", data.metrics.maxWaitLong);
     const adjustedNote = data.adjusted ? "За выбранные даты данных нет, показан ближайший день. " : "";
-    setText("updateStatus", `${adjustedNote}${data.periodLabel} Обновлено из ${data.sourceName}`);
+    setText("updateStatus", `${adjustedNote}${data.periodLabel} Данные на 10.11.2026`);
     renderQueueChart();
     renderErrors(data.errors, data.singleDay);
   } catch (error) {
