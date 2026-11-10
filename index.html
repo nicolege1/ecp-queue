@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Очередь юридической помощи ЕЦП за 21 октября 2026 года">
+  <title>Юридическая консультация | Электронная очередь ЕЦП</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <p>Единый центр поддержки</p>
+      <h1>Электронная очередь</h1>
+    </div>
+    <img src="assets/emblem-from-presentation.png" alt="Эмблема Единого центра поддержки">
+  </header>
+
+  <main>
+    <section class="page-head" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">КАБИНЕТ 102/113</p>
+        <h2 id="page-title">Юридическая консультация</h2>
+        <p class="lead">Главные показатели за выбранные даты</p>
+      </div>
+      <div class="date-control" aria-label="Выбор периода отчёта">
+        <button id="previousDate" type="button" aria-label="Предыдущий день с данными">‹</button>
+        <label>
+          <span>С</span>
+          <input id="dateFrom" type="date">
+        </label>
+        <label>
+          <span>По</span>
+          <input id="dateTo" type="date">
+        </label>
+        <button id="nextDate" type="button" aria-label="Следующий день с данными">›</button>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="Основные показатели">
+      <article class="metric metric-primary">
+        <p>Всего талонов</p>
+        <strong id="ticketsValue">...</strong>
+        <span id="ticketsCaption">за выбранный день</span>
+      </article>
+      <article class="metric">
+        <p>Среднее ожидание</p>
+        <strong><span id="avgWaitValue">...</span> <small>мин</small></strong>
+        <span id="avgWaitCaption">за весь день</span>
+      </article>
+      <article class="metric metric-alert">
+        <p>Макс. ожидание</p>
+        <strong id="maxWaitValue">...</strong>
+        <span>часов и минут</span>
+      </article>
+      <article class="metric">
+        <p>Среднее время приёма</p>
+        <strong><span id="avgServiceValue">...</span> <small>мин</small></strong>
+        <span>по талонам Ю</span>
+      </article>
+      <article class="metric">
+        <p>Макс. время приёма</p>
+        <strong id="maxServiceValue">...</strong>
+        <span>часов и минут</span>
+      </article>
+      <article class="metric">
+        <p>Сотрудники</p>
+        <strong id="workplacesValue">...</strong>
+        <span>обслуживали талоны Ю</span>
+      </article>
+    </section>
+
+    <section class="analysis-grid">
+      <article class="chart-card">
+        <div class="section-head">
+          <div>
+            <h3>Очередь по часам</h3>
+            <p>Среднее ожидание и уникальные талоны 102</p>
+          </div>
+          <div class="legend" aria-label="Легенда графика">
+            <span><i class="bar-mark"></i>Среднее ожидание, мин</span>
+            <span><i class="line-mark"></i>Кол-во уникальных талонов 102</span>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <svg id="queueChart" role="img" aria-label="Почасовой график талонов и среднего ожидания"></svg>
+        </div>
+      </article>
+
+      <aside class="insights" aria-labelledby="insights-title">
+        <div>
+          <p class="eyebrow" id="insightsEyebrow">ГЛАВНОЕ ЗА ДЕНЬ</p>
+          <h3 id="insights-title">Где возникла нагрузка</h3>
+        </div>
+        <article>
+          <span>01</span>
+          <div>
+            <strong id="peakTicketsHour">...</strong>
+            <p id="peakTicketsText">Определяется пик потока</p>
+          </div>
+        </article>
+        <article>
+          <span>02</span>
+          <div>
+            <strong id="peakWaitHour">...</strong>
+            <p id="peakWaitText">Определяется пик ожидания</p>
+          </div>
+        </article>
+        <article>
+          <span>03</span>
+          <div>
+            <strong id="maxWaitInsight">...</strong>
+            <p>Максимальное ожидание отдельного заявителя</p>
+          </div>
+        </article>
+        <p class="update-status" id="updateStatus">Читаю файл с данными</p>
+      </aside>
+    </section>
+
+    <section class="errors-card" aria-labelledby="errors-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ОШИБКИ ЗА ВЫБРАННЫЕ ДАТЫ</p>
+          <h3 id="errors-title">Статус «Обслужен», ФИО пустое</h3>
+        </div>
+      </div>
+      <div class="errors-stats" aria-label="Общие цифры по ошибкам">
+        <article><strong id="statServed">...</strong><span>Обслужено</span></article>
+        <article class="errors-stat-alert"><strong id="statErrors">...</strong><span>Ошибки</span></article>
+        <article><strong id="statNamed">...</strong><span>Имя определено</span></article>
+        <article><strong id="statUnknown">...</strong><span>Не определено</span></article>
+      </div>
+      <div class="errors-wrap">
+        <table class="errors-table reasons-table">
+          <thead>
+            <tr>
+              <th scope="col" id="errorsDateHead" hidden>Дата</th>
+              <th scope="col">Сотрудник</th>
+              <th scope="col">Талон</th>
+              <th scope="col">Приём</th>
+              <th scope="col">Ошибка</th>
+            </tr>
+          </thead>
+          <tbody id="errorsBody">
+            <tr><td colspan="4">Читаю файл с данными, это может занять около минуты</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doubles">
+        <div class="section-head">
+          <div>
+            <h3>Два ФИО на одном талоне</h3>
+          </div>
+          <div class="errors-totals" id="doublesTotals"></div>
+        </div>
+        <div class="errors-wrap">
+          <table class="errors-table doubles-table">
+            <thead>
+              <tr>
+                <th scope="col">Дата</th>
+                <th scope="col">Талон</th>
+                <th scope="col">Рабочее место</th>
+                <th scope="col">Сотрудники</th>
+              </tr>
+            </thead>
+            <tbody id="doublesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="errors-card" aria-labelledby="anomaly-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow anomaly-eyebrow">АНОМАЛИИ</p>
+          <h3 id="anomaly-title">Долгое ожидание, короткий приём</h3>
+        </div>
+        <div class="errors-totals" id="longWaitTotals"></div>
+      </div>
+      <div class="errors-wrap">
+        <table class="errors-table longwait-table">
+          <thead>
+            <tr>
+              <th scope="col">Дата</th>
+              <th scope="col">Талон</th>
+              <th scope="col">Рабочее место</th>
+              <th scope="col">Ожидание</th>
+              <th scope="col">Приём</th>
+              <th scope="col">Сотрудник</th>
+            </tr>
+          </thead>
+          <tbody id="longWaitBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
