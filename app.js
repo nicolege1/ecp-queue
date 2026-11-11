@@ -143,7 +143,7 @@ async function loadData(from = null, to = null) {
     setText("peakWaitText", `Самое высокое среднее ожидание: ${data.insights.peakWait.value} ${minuteWord}`);
     setText("maxWaitInsight", data.metrics.maxWaitLong);
     const adjustedNote = data.adjusted ? "За выбранные даты данных нет, показан ближайший день. " : "";
-    setText("updateStatus", `${adjustedNote}${data.periodLabel} Данные на 10.11.2026`);
+    setText("updateStatus", `${adjustedNote}${data.periodLabel} Данные на 11.11.2026`);
     renderQueueChart();
     renderErrors(data.errors, data.singleDay);
   } catch (error) {
