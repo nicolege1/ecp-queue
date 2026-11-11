@@ -1,6 +1,13 @@
 const queueSvg = document.querySelector("#queueChart");
-const dateFrom = document.querySelector("#dateFrom");
-const dateTo = document.querySelector("#dateTo");
+const dayModeButton = document.querySelector("#dayMode");
+const rangeModeButton = document.querySelector("#rangeMode");
+const dateTrigger = document.querySelector("#dateTrigger");
+const dateTriggerText = document.querySelector("#dateTriggerText");
+const datePopover = document.querySelector("#datePopover");
+const calendarGrid = document.querySelector("#calendarGrid");
+const monthTitle = document.querySelector("#monthTitle");
+const quickRanges = document.querySelector("#quickRanges");
+const rangeHint = document.querySelector("#rangeHint");
 const previousButton = document.querySelector("#previousDate");
 const nextButton = document.querySelector("#nextDate");
 const ns = "http://www.w3.org/2000/svg";
@@ -9,6 +16,9 @@ let queueData = [];
 let availableDates = [];
 let selectedFrom = null;
 let selectedTo = null;
+let mode = "day";
+let selectingRange = false;
+let calendarMonth = null;
 
 function node(name, attrs = {}, text = "") {
   const element = document.createElementNS(ns, name);
@@ -101,16 +111,143 @@ function drawLine(svg, points, values, color, labelAll = false) {
   });
 }
 
+const toDate = (key) => { const [y, m, d] = key.split("-").map(Number); return new Date(y, m - 1, d, 12); };
+const toKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const formatDate = (key) => new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(toDate(key));
+
+function formatRange(start, end) {
+  if (start === end) return formatDate(start);
+  const first = toDate(start);
+  const last = toDate(end);
+  if (first.getMonth() === last.getMonth() && first.getFullYear() === last.getFullYear()) return `${first.getDate()}-${formatDate(end)}`;
+  return `${formatDate(start)} - ${formatDate(end)}`;
+}
+
 function updateDateControls() {
-  dateFrom.value = selectedFrom;
-  dateTo.value = selectedTo;
-  [dateFrom, dateTo].forEach((input) => {
-    input.min = availableDates[0];
-    input.max = availableDates[availableDates.length - 1];
-  });
-  previousButton.disabled = availableDates.indexOf(selectedFrom) <= 0;
-  const lastIndex = availableDates.indexOf(selectedTo);
-  nextButton.disabled = lastIndex < 0 || lastIndex >= availableDates.length - 1;
+  if (!selectedFrom) return;
+  const range = mode === "range";
+  dayModeButton.classList.toggle("active", !range);
+  rangeModeButton.classList.toggle("active", range);
+  dayModeButton.setAttribute("aria-pressed", String(!range));
+  rangeModeButton.setAttribute("aria-pressed", String(range));
+  dateTriggerText.textContent = range ? formatRange(selectedFrom, selectedTo) : formatDate(selectedTo);
+  const index = availableDates.indexOf(selectedTo);
+  previousButton.hidden = range;
+  nextButton.hidden = range;
+  previousButton.disabled = index <= 0;
+  nextButton.disabled = index < 0 || index >= availableDates.length - 1;
+  quickRanges.hidden = !range;
+  rangeHint.hidden = !range;
+  rangeHint.textContent = selectingRange ? "Теперь выберите дату окончания" : "Выберите начало и конец периода";
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const month = calendarMonth || toDate(selectedTo);
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  monthTitle.textContent = new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(month);
+  const allowed = new Set(availableDates);
+  const offset = (new Date(year, monthIndex, 1, 12).getDay() + 6) % 7;
+  const days = new Date(year, monthIndex + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < offset; i += 1) {
+    const spacer = document.createElement("span");
+    spacer.className = "calendar-spacer";
+    cells.push(spacer);
+  }
+  for (let day = 1; day <= days; day += 1) {
+    const key = toKey(new Date(year, monthIndex, day, 12));
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = day;
+    button.className = "calendar-day";
+    if (!allowed.has(key)) {
+      button.classList.add("unavailable");
+      button.disabled = true;
+    } else {
+      button.addEventListener("click", (event) => { event.stopPropagation(); selectDate(key); });
+    }
+    if (mode === "day" && key === selectedTo) button.classList.add("selected");
+    if (mode === "range") {
+      if (key > selectedFrom && key < selectedTo) button.classList.add("in-range");
+      if (key === selectedFrom) button.classList.add("range-start");
+      if (key === selectedTo) button.classList.add("range-end");
+    }
+    button.setAttribute("aria-label", formatDate(key));
+    cells.push(button);
+  }
+  calendarGrid.replaceChildren(...cells);
+}
+
+function closeDatePopover() {
+  const unfinished = selectingRange;
+  selectingRange = false;
+  datePopover.hidden = true;
+  dateTrigger.setAttribute("aria-expanded", "false");
+  if (unfinished) loadData(selectedFrom, selectedTo);
+}
+
+function toggleDatePopover() {
+  if (!datePopover.hidden) { closeDatePopover(); return; }
+  calendarMonth = toDate(selectedTo);
+  renderCalendar();
+  datePopover.hidden = false;
+  dateTrigger.setAttribute("aria-expanded", "true");
+}
+
+function selectDate(key) {
+  if (mode === "day") {
+    closeDatePopover();
+    loadData(key, key);
+    return;
+  }
+  if (!selectingRange) {
+    selectedFrom = key;
+    selectedTo = key;
+    selectingRange = true;
+    updateDateControls();
+    return;
+  }
+  const anchor = selectedFrom;
+  selectingRange = false;
+  closeDatePopover();
+  loadData(key < anchor ? key : anchor, key < anchor ? anchor : key);
+}
+
+function setMode(next) {
+  if (mode === next || !selectedTo) return;
+  mode = next;
+  selectingRange = false;
+  closeDatePopover();
+  if (mode === "range") {
+    const endIndex = Math.max(0, availableDates.indexOf(selectedTo));
+    loadData(availableDates[Math.max(0, endIndex - 6)], availableDates[endIndex]);
+  } else {
+    loadData(selectedTo, selectedTo);
+  }
+}
+
+function setQuickRange(range) {
+  const endIndex = Math.max(0, availableDates.indexOf(selectedTo));
+  const end = availableDates[endIndex];
+  let start;
+  let last = end;
+  if (range === "month") {
+    const monthDates = availableDates.filter((date) => date.slice(0, 7) === end.slice(0, 7));
+    start = monthDates[0];
+    last = monthDates[monthDates.length - 1];
+  } else {
+    start = availableDates[Math.max(0, endIndex - Number(range) + 1)];
+  }
+  selectingRange = false;
+  closeDatePopover();
+  loadData(start, last);
+}
+
+function changeMonth(step) {
+  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + step, 1, 12);
+  renderCalendar();
 }
 
 async function loadData(from = null, to = null) {
@@ -122,6 +259,8 @@ async function loadData(from = null, to = null) {
     availableDates = data.availableDates;
     selectedFrom = data.from;
     selectedTo = data.to;
+    if (selectedFrom !== selectedTo) mode = "range";
+    calendarMonth = toDate(selectedTo);
     updateDateControls();
 
     setText("ticketsCaption", data.singleDay ? "за выбранный день" : "за выбранный период");
@@ -152,14 +291,20 @@ async function loadData(from = null, to = null) {
   }
 }
 
-function onPeriodChange() {
-  if (dateFrom.value && dateTo.value) loadData(dateFrom.value, dateTo.value);
-}
-
-dateFrom.addEventListener("change", onPeriodChange);
-dateTo.addEventListener("change", onPeriodChange);
+dayModeButton.addEventListener("click", () => setMode("day"));
+rangeModeButton.addEventListener("click", () => setMode("range"));
+dateTrigger.addEventListener("click", toggleDatePopover);
+document.querySelector("#previousMonth").addEventListener("click", () => changeMonth(-1));
+document.querySelector("#nextMonth").addEventListener("click", () => changeMonth(1));
+quickRanges.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-range]");
+  if (button) setQuickRange(button.dataset.range);
+});
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".date-picker-wrap") && !datePopover.hidden) closeDatePopover();
+});
 previousButton.addEventListener("click", () => {
-  const index = availableDates.indexOf(selectedFrom);
+  const index = availableDates.indexOf(selectedTo);
   if (index > 0) loadData(availableDates[index - 1], availableDates[index - 1]);
 });
 nextButton.addEventListener("click", () => {
