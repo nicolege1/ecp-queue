@@ -52,6 +52,8 @@
       days: chosen,
       doubles: E.doubles.filter(inRange),
       forgotten: E.forgotten.filter(inRange),
+      longService: E.longService.filter(inRange),
+      shortService: E.shortService.filter(inRange),
       longWait: E.longWait.filter(inRange),
       totals: { served: sum("served"), errors: sum("errors"), named: sum("named"), unknown: sum("unknown") },
       fromLabel: E.fromLabel,

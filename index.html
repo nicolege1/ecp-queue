@@ -195,9 +195,9 @@
       <div class="section-head">
         <div>
           <p class="eyebrow anomaly-eyebrow">АНОМАЛИИ</p>
-          <h3 id="anomaly-title">Долгое ожидание, короткий приём</h3>
+          <h3 id="anomaly-title">Долгий приём: больше 1,5 часа</h3>
         </div>
-        <div class="errors-totals" id="longWaitTotals"></div>
+        <div class="errors-totals" id="longServiceTotals"></div>
       </div>
       <div class="errors-wrap">
         <table class="errors-table longwait-table">
@@ -211,8 +211,56 @@
               <th scope="col">Сотрудник</th>
             </tr>
           </thead>
-          <tbody id="longWaitBody"></tbody>
+          <tbody id="longServiceBody"></tbody>
         </table>
+      </div>
+
+      <div class="doubles">
+        <div class="section-head">
+          <div>
+            <h3>Короткий приём: меньше 2 минут</h3>
+          </div>
+          <div class="errors-totals" id="shortServiceTotals"></div>
+        </div>
+        <div class="errors-wrap">
+          <table class="errors-table longwait-table">
+            <thead>
+              <tr>
+                <th scope="col">Дата</th>
+                <th scope="col">Талон</th>
+                <th scope="col">Рабочее место</th>
+                <th scope="col">Ожидание</th>
+                <th scope="col">Приём</th>
+                <th scope="col">Сотрудник</th>
+              </tr>
+            </thead>
+            <tbody id="shortServiceBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="doubles">
+        <div class="section-head">
+          <div>
+            <h3>Долгое ожидание: больше 20 минут</h3>
+          </div>
+          <div class="errors-totals" id="longWaitTotals"></div>
+        </div>
+        <div class="errors-wrap">
+          <table class="errors-table longwait-table">
+            <thead>
+              <tr>
+                <th scope="col">Дата</th>
+                <th scope="col">Талон</th>
+                <th scope="col">Рабочее место</th>
+                <th scope="col">Ожидание</th>
+                <th scope="col">Приём</th>
+                <th scope="col">Сотрудник</th>
+              </tr>
+            </thead>
+            <tbody id="longWaitBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 

@@ -350,9 +350,9 @@ function renderDoubles(doubles) {
   }));
 }
 
-function renderLongWait(items) {
-  const body = document.getElementById("longWaitBody");
-  setText("longWaitTotals", items.length ? `Талонов: ${items.length}` : "");
+function renderAnomaly(key, items, strong) {
+  const body = document.getElementById(`${key}Body`);
+  setText(`${key}Totals`, items.length ? `Талонов: ${items.length}` : "");
   if (!items.length) {
     const row = document.createElement("tr");
     const cell = errorCell("За выбранные даты таких случаев нет");
@@ -367,8 +367,8 @@ function renderLongWait(items) {
       errorCell(item.date, "date"),
       errorCell(item.ticket),
       errorCell(item.place),
-      errorCell(item.wait, "strong"),
-      errorCell(item.service),
+      errorCell(item.wait, strong === "wait" ? "strong" : ""),
+      errorCell(item.service, strong === "service" ? "strong" : ""),
       errorCell(item.name || "Не определено", item.name ? "" : "unknown")
     );
     return row;
@@ -376,7 +376,9 @@ function renderLongWait(items) {
 }
 
 function renderErrors(data, singleDay) {
-  renderLongWait(data.longWait);
+  renderAnomaly("longService", data.longService, "service");
+  renderAnomaly("shortService", data.shortService, "service");
+  renderAnomaly("longWait", data.longWait, "wait");
   renderDoubles(data.doubles);
   setText("statServed", data.totals.served);
   setText("statErrors", data.totals.errors);
