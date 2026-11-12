@@ -137,7 +137,8 @@ h2 {
 .date-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: 35; width: 360px; padding: 16px; border: 1px solid var(--line); border-radius: 17px; background: var(--white); box-shadow: 0 22px 60px rgba(17,18,18,.18); }
 .date-popover[hidden] { display: none; }
 .month-head { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 8px; margin-bottom: 12px; }
-.month-head strong { text-align: center; text-transform: capitalize; }
+.month-head strong { display: block; text-align: center; }
+.month-head strong::first-letter { text-transform: uppercase; }
 .month-head button { width: 34px; height: 34px; border: 0; border-radius: 9px; color: var(--green-dark); background: #f6f7f2; font-size: 22px; cursor: pointer; }
 .month-head button:disabled { color: #c4c8c1; cursor: default; }
 .weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -379,7 +380,7 @@ h3 { margin: 0; font-size: 20px; }
 .errors-card .update-status { margin-top: 12px !important; padding-top: 0; border-top: 0; }
 .errors-card .anomaly-eyebrow { color: var(--green); }
 .longwait-table .unknown { color: var(--muted); }
-@media (min-width: 1001px) {
+@media (min-width: 761px) {
   .longwait-table { table-layout: fixed; }
   .longwait-table th:nth-child(1), .longwait-table td:nth-child(1) { width: 14%; }
   .longwait-table th:nth-child(2), .longwait-table td:nth-child(2) { width: 11%; }
@@ -392,28 +393,6 @@ h3 { margin: 0; font-size: 20px; }
 .doubles { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
 
 @media (max-width: 1000px) {
-  .errors-table,
-  .errors-table thead,
-  .errors-table tbody { display: block; min-width: 0; }
-
-  .errors-table tr {
-    display: grid;
-    grid-template-columns: 1.3fr repeat(4, 1fr);
-    padding: 10px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .errors-table thead tr { padding-top: 0; }
-  .errors-table tbody tr:last-child { border-bottom: 0; }
-  .doubles-table tr { grid-template-columns: 1.2fr 0.8fr 2fr; }
-  .forgotten-table tr,
-  .longwait-table tr { grid-template-columns: repeat(3, 1fr); row-gap: 6px; }
-  .reasons-table tr { grid-template-columns: repeat(4, 1fr); }
-  .errors-table th,
-  .errors-table td { padding: 0 6px; border-bottom: 0; }
-  .errors-table th:last-child { display: none; }
-  .errors-table td:last-child { grid-column: 1 / -1; padding-top: 8px; }
-  .errors-table .num { white-space: normal; }
   .errors-totals { text-align: left; }
 }
 
@@ -447,10 +426,61 @@ h3 { margin: 0; font-size: 20px; }
   .topbar img { display: none; }
   .metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
   .metric strong { font-size: 31px; }
+}
+
+/* Телефон: календарь на всю ширину под датой, таблицы карточками */
+@media (max-width: 760px) {
+  .page-head { align-items: stretch; flex-direction: column; }
   .date-control { width: 100%; flex-wrap: wrap; }
   .period-toggle { flex: 1 1 100%; }
   .period-toggle button { flex: 1; }
-  .date-navigator, .date-picker-wrap { flex: 1; }
+  .date-navigator { position: relative; flex: 1 1 100%; }
+  .date-picker-wrap { position: static; flex: 1; min-width: 0; }
   .date-trigger { width: 100%; min-width: 0; }
-  .date-popover { position: fixed; top: 86px; left: 14px; right: 14px; width: auto; }
+  .date-popover { top: calc(100% + 8px); left: 0; right: 0; width: auto; padding: 14px; }
+  .weekdays, .calendar-grid { gap: 2px; }
+  .calendar-day, .calendar-spacer { height: 42px; }
+  .quick-ranges button { padding: 7px 4px; }
+
+  h3 { font-size: 18px; }
+  .errors-card .section-head { flex-direction: column; gap: 4px; }
+  .errors-wrap { margin-top: 8px; overflow: visible; }
+  .errors-table,
+  .errors-table tbody { display: block; min-width: 0; }
+  .errors-table thead { display: none; }
+  .errors-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .errors-table tbody tr:last-child { padding-bottom: 0; border-bottom: 0; }
+  .errors-table td { display: block; padding: 0; border-bottom: 0; font-size: 14px; overflow-wrap: anywhere; }
+  .errors-table td::before { display: block; margin-bottom: 2px; color: var(--muted); font-size: 11px; font-weight: 600; }
+  .errors-table td[colspan] { grid-column: 1 / -1; color: var(--muted); }
+  .errors-table td[colspan]::before { content: none !important; }
+
+  .reasons-table .date::before { content: "Дата"; }
+  .reasons-table .surname::before,
+  .reasons-table .unknown::before { content: "Сотрудник"; }
+  .reasons-table .ticket::before { content: "Талон"; }
+  .reasons-table .duration::before { content: "Приём"; }
+  .reasons-table .reason::before { content: "Ошибка"; }
+  .reasons-table .reason { grid-column: 1 / -1; }
+
+  .doubles-table td:nth-child(1)::before,
+  .longwait-table td:nth-child(1)::before { content: "Дата"; }
+  .doubles-table td:nth-child(2)::before,
+  .longwait-table td:nth-child(2)::before { content: "Талон"; }
+  .doubles-table td:nth-child(3)::before,
+  .longwait-table td:nth-child(3)::before { content: "Рабочее место"; }
+  .doubles-table td:nth-child(4)::before { content: "Сотрудники"; }
+  .longwait-table td:nth-child(4)::before { content: "Ожидание"; }
+  .longwait-table td:nth-child(5)::before { content: "Приём"; }
+  .longwait-table td:nth-child(6)::before { content: "Сотрудник"; }
+  .doubles-table td:nth-child(3),
+  .doubles-table td:nth-child(4),
+  .longwait-table td:nth-child(3),
+  .longwait-table td:nth-child(6) { grid-column: 1 / -1; }
 }
