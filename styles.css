@@ -379,6 +379,16 @@ h3 { margin: 0; font-size: 20px; }
 .errors-card .update-status { margin-top: 12px !important; padding-top: 0; border-top: 0; }
 .errors-card .anomaly-eyebrow { color: var(--green); }
 .longwait-table .unknown { color: var(--muted); }
+@media (min-width: 1001px) {
+  .longwait-table { table-layout: fixed; }
+  .longwait-table th:nth-child(1), .longwait-table td:nth-child(1) { width: 14%; }
+  .longwait-table th:nth-child(2), .longwait-table td:nth-child(2) { width: 11%; }
+  .longwait-table th:nth-child(3), .longwait-table td:nth-child(3) { width: 25%; }
+  .longwait-table th:nth-child(4), .longwait-table td:nth-child(4) { width: 15%; }
+  .longwait-table th:nth-child(5), .longwait-table td:nth-child(5) { width: 15%; }
+  .longwait-table th:nth-child(6), .longwait-table td:nth-child(6) { width: 20%; }
+}
+.errors-card .section-head { align-items: baseline; }
 .doubles { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
 
 @media (max-width: 1000px) {
