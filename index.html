@@ -9,11 +9,10 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">
-      <p>Единый центр поддержки</p>
-      <h1>Электронная очередь</h1>
+    <div class="pbar-left">
+      <span class="pbar-logo"><img src="assets/logo-white.svg" alt="Единый центр поддержки"></span>
+      <h1 class="pbar-service">Электронная очередь</h1>
     </div>
-    <img src="assets/emblem-from-presentation.png" alt="Эмблема Единого центра поддержки">
   </header>
 
   <main>
@@ -21,7 +20,7 @@
       <div>
         <p class="eyebrow">КАБИНЕТ 102/113</p>
         <h2 id="page-title">Юридическая консультация</h2>
-        <p class="lead">Главные показатели за выбранные даты</p>
+        <p class="lead">Показатели за выбранный период</p>
       </div>
       <div class="date-control" aria-label="Выбор периода отчёта">
         <div class="period-toggle" role="group" aria-label="Режим отчёта">
@@ -51,6 +50,10 @@
                 <button type="button" data-range="month">Весь месяц</button>
               </div>
               <p class="range-hint" id="rangeHint" hidden></p>
+              <div class="calendar-legend">
+                <span><i class="dot complete"></i>Заполнено</span>
+                <span><i class="dot empty"></i>Нет данных</span>
+              </div>
             </div>
           </div>
           <button class="date-arrow" id="nextDate" type="button" aria-label="Следующий день с данными"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
@@ -95,7 +98,7 @@
       <article class="chart-card">
         <div class="section-head">
           <div>
-            <h3>Очередь по часам</h3>
+            <h3>Почасовая динамика очереди</h3>
             <p>Среднее ожидание и уникальные талоны 102</p>
           </div>
           <div class="legend" aria-label="Легенда графика">
@@ -110,46 +113,46 @@
 
       <aside class="insights" aria-labelledby="insights-title">
         <div>
-          <p class="eyebrow" id="insightsEyebrow">ГЛАВНОЕ ЗА ДЕНЬ</p>
-          <h3 id="insights-title">Где возникла нагрузка</h3>
+          <p class="eyebrow" id="insightsEyebrow">ПИКОВЫЕ ЗНАЧЕНИЯ ЗА ДЕНЬ</p>
+          <h3 id="insights-title">Пиковая нагрузка</h3>
         </div>
         <article>
           <span>01</span>
           <div>
             <strong id="peakTicketsHour">...</strong>
-            <p id="peakTicketsText">Определяется пик потока</p>
+            <p id="peakTicketsText">Расчёт пика потока</p>
           </div>
         </article>
         <article>
           <span>02</span>
           <div>
             <strong id="peakWaitHour">...</strong>
-            <p id="peakWaitText">Определяется пик ожидания</p>
+            <p id="peakWaitText">Расчёт пика ожидания</p>
           </div>
         </article>
         <article>
           <span>03</span>
           <div>
             <strong id="maxWaitInsight">...</strong>
-            <p>Максимальное ожидание отдельного заявителя</p>
+            <p>Максимальное время ожидания заявителя</p>
           </div>
         </article>
-        <p class="update-status" id="updateStatus">Читаю файл с данными</p>
+        <p class="update-status" id="updateStatus">Загрузка данных</p>
       </aside>
     </section>
 
     <section class="errors-card" aria-labelledby="errors-title">
       <div class="section-head">
         <div>
-          <p class="eyebrow">ОШИБКИ ЗА ВЫБРАННЫЕ ДАТЫ</p>
-          <h3 id="errors-title">Статус «Обслужен», ФИО пустое</h3>
+          <p class="eyebrow">ОШИБКИ ЗА ВЫБРАННЫЙ ПЕРИОД</p>
+          <h3 id="errors-title">Статус «Обслужен» без указания сотрудника</h3>
         </div>
       </div>
       <div class="errors-stats" aria-label="Общие цифры по ошибкам">
         <article><strong id="statServed">...</strong><span>Обслужено</span></article>
         <article class="errors-stat-alert"><strong id="statErrors">...</strong><span>Ошибки</span></article>
-        <article><strong id="statNamed">...</strong><span>Имя определено</span></article>
-        <article><strong id="statUnknown">...</strong><span>Не определено</span></article>
+        <article><strong id="statNamed">...</strong><span>Сотрудник определён</span></article>
+        <article><strong id="statUnknown">...</strong><span>Сотрудник не определён</span></article>
       </div>
       <div class="errors-wrap">
         <table class="errors-table reasons-table">
@@ -163,7 +166,7 @@
             </tr>
           </thead>
           <tbody id="errorsBody">
-            <tr><td colspan="4">Читаю файл с данными, это может занять около минуты</td></tr>
+            <tr><td colspan="4">Загрузка данных, до 1 минуты</td></tr>
           </tbody>
         </table>
       </div>
@@ -171,7 +174,7 @@
       <div class="doubles">
         <div class="section-head">
           <div>
-            <h3>Два ФИО на одном талоне</h3>
+            <h3>Два сотрудника на одном талоне</h3>
           </div>
           <div class="errors-totals" id="doublesTotals"></div>
         </div>
@@ -195,7 +198,7 @@
       <p class="eyebrow anomaly-eyebrow">АНОМАЛИИ</p>
       <div class="section-head">
         <div>
-          <h3 id="anomaly-title">Долгий приём: больше 1,5 часа</h3>
+          <h3 id="anomaly-title">Длительность приёма более 1,5 часа</h3>
         </div>
         <div class="errors-totals" id="longServiceTotals"></div>
       </div>
@@ -218,7 +221,7 @@
       <div class="doubles">
         <div class="section-head">
           <div>
-            <h3>Короткий приём: меньше 2 минут</h3>
+            <h3>Длительность приёма менее 2 минут</h3>
           </div>
           <div class="errors-totals" id="shortServiceTotals"></div>
         </div>
@@ -242,7 +245,7 @@
       <div class="doubles">
         <div class="section-head">
           <div>
-            <h3>Долгое ожидание: больше 20 минут</h3>
+            <h3>Время ожидания более 20 минут</h3>
           </div>
           <div class="errors-totals" id="longWaitTotals"></div>
         </div>
@@ -267,6 +270,7 @@
   </main>
 
   <script src="data.js"></script>
+  <script>window.QUEUE_SNAPSHOT_DATE = "16.11.2026";</script>
   <script src="static-data.js"></script>
   <script src="app.js"></script>
 </body>

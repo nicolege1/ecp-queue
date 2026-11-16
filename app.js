@@ -138,7 +138,7 @@ function updateDateControls() {
   nextButton.disabled = index < 0 || index >= availableDates.length - 1;
   quickRanges.hidden = !range;
   rangeHint.hidden = !range;
-  rangeHint.textContent = selectingRange ? "Теперь выберите дату окончания" : "Выберите начало и конец периода";
+  rangeHint.textContent = selectingRange ? "Выберите дату окончания периода" : "Выберите даты начала и окончания периода";
   renderCalendar();
 }
 
@@ -160,12 +160,13 @@ function renderCalendar() {
     const key = toKey(new Date(year, monthIndex, day, 12));
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = day;
+    button.innerHTML = `<span>${day}</span><i></i>`;
     button.className = "calendar-day";
-    if (!allowed.has(key)) {
+    if (key < availableDates[0] || key > availableDates[availableDates.length - 1]) {
       button.classList.add("unavailable");
       button.disabled = true;
     } else {
+      button.classList.add(allowed.has(key) ? "complete" : "empty");
       button.addEventListener("click", (event) => { event.stopPropagation(); selectDate(key); });
     }
     if (mode === "day" && key === selectedTo) button.classList.add("selected");
@@ -252,7 +253,7 @@ function changeMonth(step) {
 
 async function loadData(from = null, to = null) {
   try {
-    setText("updateStatus", "Читаю файл с данными");
+    setText("updateStatus", "Загрузка данных");
     const data = window.computeQueueData(from, to);
 
     queueData = data.chart;
@@ -265,7 +266,7 @@ async function loadData(from = null, to = null) {
 
     setText("ticketsCaption", data.singleDay ? "за выбранный день" : "за выбранный период");
     setText("avgWaitCaption", data.singleDay ? "за весь день" : "за весь период");
-    setText("insightsEyebrow", data.singleDay ? "ГЛАВНОЕ ЗА ДЕНЬ" : "ГЛАВНОЕ ЗА ПЕРИОД");
+    setText("insightsEyebrow", data.singleDay ? "ПИКОВЫЕ ЗНАЧЕНИЯ ЗА ДЕНЬ" : "ПИКОВЫЕ ЗНАЧЕНИЯ ЗА ПЕРИОД");
 
     setText("ticketsValue", data.metrics.tickets);
     setText("avgWaitValue", data.metrics.avgWait);
@@ -279,14 +280,14 @@ async function loadData(from = null, to = null) {
     setText("peakTicketsText", `Пик потока: ${data.insights.peakTickets.value} ${ticketWord} ${peakPeriod}`);
     setText("peakWaitHour", `${data.insights.peakWait.hour}:00`);
     const minuteWord = wordForm(data.insights.peakWait.value, "минута", "минуты", "минут");
-    setText("peakWaitText", `Самое высокое среднее ожидание: ${data.insights.peakWait.value} ${minuteWord}`);
+    setText("peakWaitText", `Максимальное среднее время ожидания: ${data.insights.peakWait.value} ${minuteWord}`);
     setText("maxWaitInsight", data.metrics.maxWaitLong);
-    const adjustedNote = data.adjusted ? "За выбранные даты данных нет, показан ближайший день. " : "";
-    setText("updateStatus", `${adjustedNote}${data.periodLabel} Данные на 13.11.2026`);
+    const adjustedNote = data.adjusted ? "За выбранный период данные отсутствуют, показан ближайший день. " : "";
+    setText("updateStatus", `${adjustedNote}${data.periodLabel} Данные на ${window.QUEUE_SNAPSHOT_DATE}`);
     renderQueueChart();
     renderErrors(data.errors, data.singleDay);
   } catch (error) {
-    setText("updateStatus", "Не удалось прочитать файл с данными в папке Загрузки");
+    setText("updateStatus", "Ошибка загрузки данных");
     console.error(error);
   }
 }
@@ -335,7 +336,7 @@ function renderDoubles(doubles) {
   setText("doublesTotals", doubles.length ? `Талонов: ${doubles.length}` : "");
   if (!doubles.length) {
     const row = document.createElement("tr");
-    const cell = errorCell("За выбранные даты таких талонов нет");
+    const cell = errorCell("За выбранный период талоны не выявлены");
     cell.colSpan = 4;
     row.append(cell);
     body.replaceChildren(row);
@@ -355,7 +356,7 @@ function renderAnomaly(key, items, strong) {
   setText(`${key}Totals`, items.length ? `Талонов: ${items.length}` : "");
   if (!items.length) {
     const row = document.createElement("tr");
-    const cell = errorCell("За выбранные даты таких случаев нет");
+    const cell = errorCell("За выбранный период случаи не выявлены");
     cell.colSpan = 6;
     row.append(cell);
     body.replaceChildren(row);
@@ -390,7 +391,7 @@ function renderErrors(data, singleDay) {
   const items = data.days.flatMap((day) => day.tickets.map((item) => ({ ...item, date: day.date })));
   if (!items.length) {
     const row = document.createElement("tr");
-    const cell = errorCell(`За выбранные даты ошибок нет. Ошибки считаются с ${data.fromLabel}`);
+    const cell = errorCell(`За выбранный период ошибки не выявлены. Учёт ошибок ведётся с ${data.fromLabel}`);
     cell.colSpan = singleDay ? 4 : 5;
     row.append(cell);
     body.replaceChildren(row);
