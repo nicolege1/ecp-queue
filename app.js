@@ -27,7 +27,7 @@ const DEPARTMENTS = {
   mfc: { eyebrow: "КАБИНЕТ 112", title: "МФЦ", service: "по талонам МФЦ", staffLabel: "Столы", staffCaption: "обслуживали талоны МФЦ", chartLead: "Среднее ожидание и уникальные талоны МФЦ", bar: "Среднее ожидание, мин", line: "Кол-во уникальных талонов МФЦ" },
   contact: { eyebrow: "ВХОДЯЩИЕ ЗВОНКИ", title: "Контакт-центр", chartLead: "Отработанные звонки и среднее время ожидания ответа оператора", bar: "Среднее время ожидания, сек", line: "Отработано звонков" }
 };
-let department = Object.hasOwn(DEPARTMENTS, location.hash.slice(1)) ? location.hash.slice(1) : "legal";
+let department = "legal";
 
 function applyDepartment() {
   const info = DEPARTMENTS[department];
