@@ -18,7 +18,13 @@
   <main>
     <section class="page-head" aria-labelledby="page-title">
       <div>
-        <p class="eyebrow">КАБИНЕТ 102/113</p>
+        <nav class="dept-tabs" id="deptTabs" aria-label="Отдел">
+          <button type="button" data-dept="legal" class="active">Юридическая консультация</button>
+          <button type="button" data-dept="primary">Первичный приём</button>
+          <button type="button" data-dept="mfc">МФЦ</button>
+          <button type="button" data-dept="contact">Контакт-центр</button>
+        </nav>
+        <p class="eyebrow" id="deptEyebrow">КАБИНЕТ 102/113</p>
         <h2 id="page-title">Юридическая консультация</h2>
         <p class="lead">Показатели за выбранный период</p>
       </div>
@@ -61,7 +67,30 @@
       </div>
     </section>
 
-    <section class="metrics" aria-label="Основные показатели">
+    <section class="metrics contact-metrics" id="contactMetrics" aria-label="Показатели контакт-центра" hidden>
+      <article class="metric metric-primary">
+        <p>Операторы</p>
+        <strong id="ccOperators">...</strong>
+        <span id="ccOperatorsCaption">максимум за час</span>
+      </article>
+      <article class="metric">
+        <p>Среднее ожидание</p>
+        <strong><span id="ccWait">...</span> <small>сек</small></strong>
+        <span>до ответа оператора</span>
+      </article>
+      <article class="metric">
+        <p>Отработано звонков</p>
+        <strong id="ccHandled">...</strong>
+        <span>обработано оператором</span>
+      </article>
+      <article class="metric metric-alert">
+        <p>Пропущено звонков</p>
+        <strong id="ccMissed">...</strong>
+        <span>не дождались ответа</span>
+      </article>
+    </section>
+
+    <section class="metrics" id="metricsSection" aria-label="Основные показатели">
       <article class="metric metric-primary">
         <p>Всего талонов</p>
         <strong id="ticketsValue">...</strong>
@@ -80,17 +109,17 @@
       <article class="metric">
         <p>Среднее время приёма</p>
         <strong><span id="avgServiceValue">...</span> <small>мин</small></strong>
-        <span>по талонам Ю</span>
+        <span id="avgServiceCaption">по талонам Ю</span>
       </article>
       <article class="metric">
         <p>Макс. время приёма</p>
         <strong id="maxServiceValue">...</strong>
         <span>часов и минут</span>
       </article>
-      <article class="metric">
-        <p>Сотрудники</p>
+      <article class="metric" id="workplacesCard">
+        <p id="workplacesLabel">Сотрудники</p>
         <strong id="workplacesValue">...</strong>
-        <span>обслуживали талоны Ю</span>
+        <span id="workplacesCaption">обслуживали талоны Ю</span>
       </article>
     </section>
 
@@ -99,11 +128,11 @@
         <div class="section-head">
           <div>
             <h3>Почасовая динамика очереди</h3>
-            <p>Среднее ожидание и уникальные талоны 102</p>
+            <p id="chartLead">Среднее ожидание и уникальные талоны 102</p>
           </div>
           <div class="legend" aria-label="Легенда графика">
-            <span><i class="bar-mark"></i>Среднее ожидание, мин</span>
-            <span><i class="line-mark"></i>Кол-во уникальных талонов 102</span>
+            <span><i class="bar-mark"></i><span id="legendBar">Среднее ожидание, мин</span></span>
+            <span><i class="line-mark"></i><span id="legendLine">Кол-во уникальных талонов 102</span></span>
           </div>
         </div>
         <div class="chart-wrap">
@@ -111,7 +140,7 @@
         </div>
       </article>
 
-      <aside class="insights" aria-labelledby="insights-title">
+      <aside class="insights" id="insightsAside" aria-labelledby="insights-title">
         <div>
           <p class="eyebrow" id="insightsEyebrow">ПИКОВЫЕ ЗНАЧЕНИЯ ЗА ДЕНЬ</p>
           <h3 id="insights-title">Пиковая нагрузка</h3>
@@ -141,7 +170,60 @@
       </aside>
     </section>
 
-    <section class="errors-card" aria-labelledby="errors-title">
+    <section class="errors-card" id="desksSection" aria-labelledby="desks-title" hidden>
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">РАБОТА СТОЛОВ ЗА ВЫБРАННЫЙ ПЕРИОД</p>
+          <h3 id="desks-title">Обслуженные талоны по столам</h3>
+        </div>
+        <div class="errors-totals" id="desksTotals"></div>
+      </div>
+      <div class="errors-wrap">
+        <table class="errors-table desks-table">
+          <thead>
+            <tr>
+              <th scope="col">Стол</th>
+              <th scope="col">Обслужено талонов</th>
+              <th scope="col">Среднее время приёма</th>
+              <th scope="col">Макс. время приёма</th>
+              <th scope="col">Среднее ожидание</th>
+            </tr>
+          </thead>
+          <tbody id="desksBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="errors-card" id="primaryErrorsSection" aria-labelledby="primary-errors-title" hidden>
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ОШИБКИ ЗА ВЫБРАННЫЙ ПЕРИОД</p>
+          <h3 id="primary-errors-title">Статус «Обслужен», талон не найден в направлениях</h3>
+        </div>
+      </div>
+      <div class="errors-stats" aria-label="Общие цифры по ошибкам">
+        <article><strong id="pStatServed">...</strong><span>Обслужено</span></article>
+        <article class="errors-stat-alert"><strong id="pStatErrors">...</strong><span>Ошибки</span></article>
+        <article><strong id="pStatFound">...</strong><span>Направление найдено</span></article>
+        <article><strong id="pStatShare">...</strong><span>Доля ошибок</span></article>
+      </div>
+      <div class="errors-wrap">
+        <table class="errors-table reasons-table">
+          <thead>
+            <tr>
+              <th scope="col" id="pErrorsDateHead" hidden>Дата</th>
+              <th scope="col">Стол</th>
+              <th scope="col">Талон</th>
+              <th scope="col">Приём</th>
+              <th scope="col">Ошибка</th>
+            </tr>
+          </thead>
+          <tbody id="pErrorsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="errors-card" id="errorsSection" aria-labelledby="errors-title">
       <div class="section-head">
         <div>
           <p class="eyebrow">ОШИБКИ ЗА ВЫБРАННЫЙ ПЕРИОД</p>
@@ -194,8 +276,9 @@
       </div>
     </section>
 
-    <section class="errors-card" aria-labelledby="anomaly-title">
+    <section class="errors-card" id="anomalySection" aria-labelledby="anomaly-title">
       <p class="eyebrow anomaly-eyebrow">АНОМАЛИИ</p>
+      <div id="longServiceBlock">
       <div class="section-head">
         <div>
           <h3 id="anomaly-title">Длительность приёма более 1,5 часа</h3>
@@ -208,17 +291,18 @@
             <tr>
               <th scope="col">Дата</th>
               <th scope="col">Талон</th>
-              <th scope="col">Рабочее место</th>
+              <th scope="col" class="place-head">Рабочее место</th>
               <th scope="col">Ожидание</th>
               <th scope="col">Приём</th>
-              <th scope="col">Сотрудник</th>
+              <th scope="col" class="staff-head">Сотрудник</th>
             </tr>
           </thead>
           <tbody id="longServiceBody"></tbody>
         </table>
       </div>
+      </div>
 
-      <div class="doubles">
+      <div class="doubles" id="shortServiceBlock">
         <div class="section-head">
           <div>
             <h3>Длительность приёма менее 2 минут</h3>
@@ -231,10 +315,10 @@
               <tr>
                 <th scope="col">Дата</th>
                 <th scope="col">Талон</th>
-                <th scope="col">Рабочее место</th>
+                <th scope="col" class="place-head">Рабочее место</th>
                 <th scope="col">Ожидание</th>
                 <th scope="col">Приём</th>
-                <th scope="col">Сотрудник</th>
+                <th scope="col" class="staff-head">Сотрудник</th>
               </tr>
             </thead>
             <tbody id="shortServiceBody"></tbody>
@@ -242,7 +326,7 @@
         </div>
       </div>
 
-      <div class="doubles">
+      <div class="doubles" id="longWaitBlock">
         <div class="section-head">
           <div>
             <h3>Время ожидания более 20 минут</h3>
@@ -255,10 +339,10 @@
               <tr>
                 <th scope="col">Дата</th>
                 <th scope="col">Талон</th>
-                <th scope="col">Рабочее место</th>
+                <th scope="col" class="place-head">Рабочее место</th>
                 <th scope="col">Ожидание</th>
                 <th scope="col">Приём</th>
-                <th scope="col">Сотрудник</th>
+                <th scope="col" class="staff-head">Сотрудник</th>
               </tr>
             </thead>
             <tbody id="longWaitBody"></tbody>
@@ -269,9 +353,9 @@
 
   </main>
 
-  <script src="data.js?v=16.11.2026"></script>
-  <script>window.QUEUE_SNAPSHOT_DATE = "16.11.2026";</script>
-  <script src="static-data.js?v=16.11.2026"></script>
-  <script src="app.js?v=16.11.2026"></script>
+  <script src="data.js?v=17.11.2026"></script>
+  <script>window.QUEUE_SNAPSHOT_DATE = "17.11.2026";</script>
+  <script src="static-data.js?v=17.11.2026"></script>
+  <script src="app.js?v=17.11.2026"></script>
 </body>
 </html>

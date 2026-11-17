@@ -20,6 +20,63 @@ let mode = "day";
 let selectingRange = false;
 let calendarMonth = null;
 
+// Отделы: юристы, первичный приём (кабинет 101), МФЦ, контакт-центр (только график звонков)
+const DEPARTMENTS = {
+  legal: { eyebrow: "КАБИНЕТ 102/113", title: "Юридическая консультация", service: "по талонам Ю", staffLabel: "Сотрудники", staffCaption: "обслуживали талоны Ю", chartLead: "Среднее ожидание и уникальные талоны 102", bar: "Среднее ожидание, мин", line: "Кол-во уникальных талонов 102" },
+  primary: { eyebrow: "КАБИНЕТ 101", title: "Первичный приём", service: "по талонам кабинета 101", staffLabel: "Столы", staffCaption: "обслуживали талоны 101", chartLead: "Среднее ожидание и уникальные талоны кабинета 101", bar: "Среднее ожидание, мин", line: "Кол-во уникальных талонов 101" },
+  mfc: { eyebrow: "КАБИНЕТ 112", title: "МФЦ", service: "по талонам МФЦ", staffLabel: "Столы", staffCaption: "обслуживали талоны МФЦ", chartLead: "Среднее ожидание и уникальные талоны МФЦ", bar: "Среднее ожидание, мин", line: "Кол-во уникальных талонов МФЦ" },
+  contact: { eyebrow: "ВХОДЯЩИЕ ЗВОНКИ", title: "Контакт-центр", chartLead: "Отработанные звонки и среднее время ожидания ответа оператора", bar: "Среднее время ожидания, сек", line: "Отработано звонков" }
+};
+let department = Object.hasOwn(DEPARTMENTS, location.hash.slice(1)) ? location.hash.slice(1) : "legal";
+
+function applyDepartment() {
+  const info = DEPARTMENTS[department];
+  const contact = department === "contact";
+  const byDesk = department === "primary" || department === "mfc";
+  document.querySelectorAll("#deptTabs button").forEach((button) => {
+    const active = button.dataset.dept === department;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  setText("deptEyebrow", info.eyebrow);
+  setText("page-title", info.title);
+  document.title = `${info.title} | Электронная очередь ЕЦП`;
+  setText("chartLead", info.chartLead);
+  setText("legendBar", info.bar);
+  setText("legendLine", info.line);
+  if (!contact) {
+    setText("avgServiceCaption", info.service);
+    setText("workplacesLabel", info.staffLabel);
+    setText("workplacesCaption", info.staffCaption);
+  }
+  document.getElementById("metricsSection").hidden = contact;
+  document.getElementById("contactMetrics").hidden = !contact;
+  // У МФЦ карточки «Столы» нет
+  document.getElementById("workplacesCard").hidden = department === "mfc";
+  document.getElementById("metricsSection").classList.toggle("has-five", department === "mfc");
+  // У МФЦ из аномалий только долгое ожидание
+  document.getElementById("longServiceBlock").hidden = department === "mfc";
+  document.getElementById("shortServiceBlock").hidden = department === "mfc";
+  document.getElementById("longWaitBlock").classList.toggle("only-block", department === "mfc");
+  document.getElementById("insightsAside").hidden = contact;
+  document.querySelector(".analysis-grid").classList.toggle("chart-only", contact);
+  document.getElementById("errorsSection").hidden = department !== "legal";
+  document.getElementById("desksSection").hidden = !byDesk;
+  document.getElementById("primaryErrorsSection").hidden = department !== "primary";
+  // Аномалии: у юристов и МФЦ; у первичного приёма и контакт-центра не показываем.
+  document.getElementById("anomalySection").hidden = contact || department === "primary";
+  document.querySelectorAll(".staff-head").forEach((head) => { head.hidden = byDesk; });
+  document.querySelectorAll(".place-head").forEach((head) => { head.textContent = byDesk ? "Стол" : "Рабочее место"; });
+}
+
+function selectDepartment(next) {
+  if (next === department || !Object.hasOwn(DEPARTMENTS, next)) return;
+  department = next;
+  history.replaceState(null, "", next === "legal" ? location.pathname : `#${next}`);
+  applyDepartment();
+  loadData(selectedFrom, selectedTo);
+}
+
 function node(name, attrs = {}, text = "") {
   const element = document.createElementNS(ns, name);
   Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, value));
@@ -254,7 +311,7 @@ function changeMonth(step) {
 async function loadData(from = null, to = null) {
   try {
     setText("updateStatus", "Загрузка данных");
-    const data = window.computeQueueData(from, to);
+    const data = window.computeQueueData(from, to, department);
 
     queueData = data.chart;
     availableDates = data.availableDates;
@@ -264,6 +321,16 @@ async function loadData(from = null, to = null) {
     calendarMonth = toDate(selectedTo);
     updateDateControls();
 
+    applyDepartment();
+    if (department === "contact") {
+      setText("ccOperators", data.metrics.operators);
+      setText("ccOperatorsCaption", data.singleDay ? "максимум за час" : "в среднем за день, максимум за час");
+      setText("ccWait", data.metrics.avgWait);
+      setText("ccHandled", data.metrics.handled);
+      setText("ccMissed", data.metrics.missed);
+      renderQueueChart();
+      return;
+    }
     setText("ticketsCaption", data.singleDay ? "за выбранный день" : "за выбранный период");
     setText("avgWaitCaption", data.singleDay ? "за весь день" : "за весь период");
     setText("insightsEyebrow", data.singleDay ? "ПИКОВЫЕ ЗНАЧЕНИЯ ЗА ДЕНЬ" : "ПИКОВЫЕ ЗНАЧЕНИЯ ЗА ПЕРИОД");
@@ -285,7 +352,15 @@ async function loadData(from = null, to = null) {
     const adjustedNote = data.adjusted ? "За выбранный период данные отсутствуют, показан ближайший день. " : "";
     setText("updateStatus", `${adjustedNote}${data.periodLabel} Данные на ${window.QUEUE_SNAPSHOT_DATE}`);
     renderQueueChart();
-    renderErrors(data.errors, data.singleDay);
+    if (data.desks) {
+      renderDesks(data.desks);
+      if (data.primaryErrors) renderPrimaryErrors(data.primaryErrors, data.singleDay);
+      renderAnomaly("longService", data.errors.longService, "service");
+      renderAnomaly("shortService", data.errors.shortService, "service");
+      renderAnomaly("longWait", data.errors.longWait, "wait");
+    } else {
+      renderErrors(data.errors, data.singleDay);
+    }
   } catch (error) {
     setText("updateStatus", "Ошибка загрузки данных");
     console.error(error);
@@ -293,6 +368,10 @@ async function loadData(from = null, to = null) {
 }
 
 dayModeButton.addEventListener("click", () => setMode("day"));
+document.getElementById("deptTabs").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-dept]");
+  if (button) selectDepartment(button.dataset.dept);
+});
 rangeModeButton.addEventListener("click", () => setMode("range"));
 dateTrigger.addEventListener("click", toggleDatePopover);
 document.querySelector("#previousMonth").addEventListener("click", () => changeMonth(-1));
@@ -351,13 +430,57 @@ function renderDoubles(doubles) {
   }));
 }
 
+function renderDesks(desks) {
+  const body = document.getElementById("desksBody");
+  const total = desks.reduce((sum, item) => sum + item.served, 0);
+  setText("desksTotals", desks.length ? `Столов: ${desks.length}, талонов: ${total}` : "");
+  if (!desks.length) {
+    const row = document.createElement("tr");
+    const cell = errorCell("За выбранный период обслуженных талонов нет");
+    cell.colSpan = 5;
+    row.append(cell);
+    body.replaceChildren(row);
+    return;
+  }
+  body.replaceChildren(...desks.map((item) => {
+    const row = document.createElement("tr");
+    row.title = item.place;
+    row.append(errorCell(item.desk, "surname"), errorCell(item.served), errorCell(item.avgService), errorCell(item.maxService), errorCell(item.avgWait));
+    return row;
+  }));
+}
+
+function renderPrimaryErrors(data, singleDay) {
+  setText("pStatServed", data.served);
+  setText("pStatErrors", data.errors);
+  setText("pStatFound", data.found);
+  setText("pStatShare", data.served ? `${Math.round(data.errors / data.served * 100)}%` : "-");
+  document.getElementById("pErrorsDateHead").hidden = singleDay;
+  const body = document.getElementById("pErrorsBody");
+  if (!data.items.length) {
+    const row = document.createElement("tr");
+    const cell = errorCell(`За выбранный период ошибки не выявлены. Учёт ошибок ведётся с ${data.fromLabel}`);
+    cell.colSpan = singleDay ? 4 : 5;
+    row.append(cell);
+    body.replaceChildren(row);
+    return;
+  }
+  body.replaceChildren(...data.items.map((item) => {
+    const row = document.createElement("tr");
+    if (!singleDay) row.append(errorCell(item.date, "date"));
+    row.append(errorCell(item.desk, "surname"), errorCell(item.ticket, "ticket"), errorCell(item.duration, "duration"), errorCell(item.reason, "reason"));
+    return row;
+  }));
+}
+
 function renderAnomaly(key, items, strong) {
   const body = document.getElementById(`${key}Body`);
+  const byDesk = department === "primary" || department === "mfc";
   setText(`${key}Totals`, items.length ? `Талонов: ${items.length}` : "");
   if (!items.length) {
     const row = document.createElement("tr");
     const cell = errorCell("За выбранный период случаи не выявлены");
-    cell.colSpan = 6;
+    cell.colSpan = byDesk ? 5 : 6;
     row.append(cell);
     body.replaceChildren(row);
     return;
@@ -369,9 +492,9 @@ function renderAnomaly(key, items, strong) {
       errorCell(item.ticket),
       errorCell(item.place),
       errorCell(item.wait, strong === "wait" ? "strong" : ""),
-      errorCell(item.service, strong === "service" ? "strong" : ""),
-      errorCell(item.name || "Не определено", item.name ? "" : "unknown")
+      errorCell(item.service, strong === "service" ? "strong" : "")
     );
+    if (!byDesk) row.append(errorCell(item.name || "Не определено", item.name ? "" : "unknown"));
     return row;
   }));
 }
@@ -410,6 +533,7 @@ function renderErrors(data, singleDay) {
   }));
 }
 
+applyDepartment();
 loadData();
 window.addEventListener("resize", () => {
   renderQueueChart();
